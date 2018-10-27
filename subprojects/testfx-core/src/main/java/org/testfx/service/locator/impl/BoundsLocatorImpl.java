@@ -25,8 +25,6 @@ import javafx.stage.Window;
 import org.testfx.service.locator.BoundsLocator;
 import org.testfx.service.locator.BoundsLocatorException;
 
-import static org.testfx.util.BoundsQueryUtils.scale;
-
 public class BoundsLocatorImpl implements BoundsLocator {
 
     @Override
@@ -72,8 +70,7 @@ public class BoundsLocatorImpl implements BoundsLocator {
     public Bounds boundsOnScreenFor(Bounds boundsInScene, Scene scene) {
         Bounds windowBounds = boundsInWindowFor(boundsInScene, scene);
         Window window = scene.getWindow();
-        Bounds original = translateBounds(windowBounds, window.getX(), window.getY());
-        return scale(original);
+        return translateBounds(windowBounds, window.getX(), window.getY());
     }
 
     private Bounds limitToVisibleBounds(Bounds boundsInScene, Scene scene) {

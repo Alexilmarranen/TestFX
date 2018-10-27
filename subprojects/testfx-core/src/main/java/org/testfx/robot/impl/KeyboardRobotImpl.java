@@ -31,7 +31,10 @@ import org.testfx.util.WaitForAsyncUtils;
 
 public class KeyboardRobotImpl implements KeyboardRobot {
 
-    protected static final KeyCode OS_SPECIFIC_SHORTCUT = System.getProperty("os.name").toLowerCase(Locale.US)
+    /**
+    * This key is sent depending on the platform via the Robot to Java.
+    */
+    private static final KeyCode OS_SPECIFIC_SHORTCUT = System.getProperty("os.name").toLowerCase(Locale.US)
             .startsWith("mac") ? KeyCode.COMMAND : KeyCode.CONTROL;
 
     private final BaseRobot baseRobot;
@@ -41,11 +44,13 @@ public class KeyboardRobotImpl implements KeyboardRobot {
         Objects.requireNonNull(baseRobot, "baseRobot must not be null");
         this.baseRobot = baseRobot;
     }
-
+ 
     @Override
     public void press(KeyCode... keys) {
-        pressNoWait(keys);
-        WaitForAsyncUtils.waitForFxEvents();
+        Arrays.asList(keys).forEach(k -> {
+            pressKey(k);
+            WaitForAsyncUtils.waitForFxEvents();
+        });
     }
 
     @Override
@@ -55,8 +60,17 @@ public class KeyboardRobotImpl implements KeyboardRobot {
 
     @Override
     public void release(KeyCode... keys) {
-        releaseNoWait(keys);
-        WaitForAsyncUtils.waitForFxEvents();
+        if (keys.length == 0) {
+            pressedKeys.forEach(k -> {
+                releaseKey(k);
+                WaitForAsyncUtils.waitForFxEvents();
+            });
+        } else {
+            Arrays.asList(keys).forEach(k -> {
+                releaseKey(k);
+                WaitForAsyncUtils.waitForFxEvents();
+            });
+        }
     }
 
     @Override

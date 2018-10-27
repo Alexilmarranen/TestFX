@@ -16,6 +16,8 @@
  */
 package org.testfx.cases.integration;
 
+import java.util.Locale;
+import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import javafx.geometry.Pos;
@@ -38,8 +40,11 @@ import org.testfx.api.FxToolkit;
 import org.testfx.framework.junit.TestFXRule;
 import org.testfx.robot.Motion;
 
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 
+import static org.hamcrest.CoreMatchers.not;
+import static org.junit.Assume.assumeFalse;
 import static org.testfx.api.FxAssert.verifyThat;
 import static org.testfx.util.DebugUtils.informedErrorMessage;
 
@@ -100,15 +105,28 @@ public class MenuBarTest {
      */
     @Test
     public void should_move_vertically_first() throws Exception {
+        assumeFalse("skipping: Fails on HIDPI + AWT Robot", isHiDpiAwt());
+
         // First we show that it is indeed the case that {@code editMenu} is triggered when moving directly:
         editMenu.setOnShown(event -> editMenuShownLatch.countDown());
-        fxRobot.clickOn("#fileMenu").clickOn("#newItem", Motion.DIRECT);
+        fxRobot.clickOn("#fileMenu");
+        verifyThat(fxRobot.lookup("#newItem").tryQuery(), is(not(equalTo(Optional.empty()))),
+                informedErrorMessage(fxRobot));
+        fxRobot.clickOn("#newItem", Motion.DIRECT);
         verifyThat(editMenuShownLatch.await(3, TimeUnit.SECONDS), is(true), informedErrorMessage(fxRobot));
         verifyThat(newMenuShownLatch.getCount(), is(1L), informedErrorMessage(fxRobot));
 
         // Next we show that calling the "clickOn" method without specifying the type of motion automatically
         // uses Motion.VERTICAL_FIRST because "#newItem" is a MenuItem.
-        fxRobot.clickOn("#fileMenu").clickOn("#newItem");
+        fxRobot.clickOn("#fileMenu");
+        verifyThat(fxRobot.lookup("#newItem").tryQuery(), is(not(equalTo(Optional.empty()))),
+                informedErrorMessage(fxRobot));
+        fxRobot.clickOn("#newItem");
         verifyThat(newMenuShownLatch.await(3, TimeUnit.SECONDS), is(true), informedErrorMessage(fxRobot));
+    }
+
+    private static boolean isHiDpiAwt() {
+        return System.getProperty("glass.win.uiScale", "100%").equals("200%") &&
+                System.getProperty("testfx.robot", "awt").toLowerCase(Locale.US).equals("awt");
     }
 }
